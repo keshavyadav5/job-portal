@@ -10,15 +10,17 @@ import jobRoute from './routes/job.route.js'
 import applicationRoute from './routes/application.route.js'
 dotenv.config({})
 
-//middleware
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
-app.use(cookieParser())
-const corsOption = {
-  origin: "http://localhost:5173",
-  credentials: true
+
+// middleware
+app.use(express.json());
+app.use(express.urlencoded({extended:true}));
+app.use(cookieParser());
+const corsOptions = {
+    origin:'http://localhost:5173',
+    credentials:true
 }
-app.use(cors(corsOption))
+
+app.use(cors(corsOptions));
 const PORT = process.env.PORT || 3000;
 
 
