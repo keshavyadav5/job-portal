@@ -59,45 +59,53 @@ export const getCompany = async (req, res) => {
 }
 
 export const getCompanyById = async (req, res) => {
-    try {
-        const companyId = req.params.id;
-        const company = await Company.findById(companyId);
-        if (!company) {
-            return res.status(404).json({
-                message: "Company not found.",
-                success: false
-            })
-        }
-        return res.status(200).json({
-            company,
-            success: true
-        })
-    } catch (error) {
-        console.log(error);
+  try {
+    const companyId = req.params.id;
+    const company = await Company.findById(companyId);
+    if (!company) {
+      return res.status(404).json({
+        message: "Company not found.",
+        success: false
+      })
     }
+    return res.status(200).json({
+      company,
+      success: true
+    })
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message: "Internal server error",
+      success: false
+    })
+  }
 }
 
 
 export const updateCompany = async (req, res) => {
-    try {
-        const { name, description, website, location } = req.body;
- 
-        const updateData = { name, description, website, location };
+  try {
+    const { name, description, website, location } = req.body;
 
-        const company = await Company.findByIdAndUpdate(req.params.id, updateData, { new: true });
+    const updateData = { name, description, website, location };
 
-        if (!company) {
-            return res.status(404).json({
-                message: "Company not found.",
-                success: false
-            })
-        }
-        return res.status(200).json({
-            message:"Company information updated.",
-            success:true
-        })
+    const company = await Company.findByIdAndUpdate(req.params.id, updateData, { new: true });
 
-    } catch (error) {
-        console.log(error);
+    if (!company) {
+      return res.status(404).json({
+        message: "Company not found.",
+        success: false
+      })
     }
+    return res.status(200).json({
+      message: "Company information updated.",
+      success: true
+    })
+
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message: "Internal server error",
+      success: false
+    })
+  }
 }
