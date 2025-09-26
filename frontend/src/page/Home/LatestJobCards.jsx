@@ -26,10 +26,10 @@ const LatestJobCards = ({ job }) => {
         <h1 className='font-bold text-lg my-2'>{job?.title}</h1>
         <p className='text-sm text-gray-600'>{(job?.description).substring(0,100)}...</p>
       </div>
-      <div className='flex items-center gap-2 mt-4'>
-        <Badge className={'text-blue-700 font-bold'} variant="ghost">{job?.position} Positions</Badge>
-        <Badge className={'text-[#F83002] font-bold'} variant="ghost">{job?.jobType}</Badge>
-        <Badge className={'text-[#7209b7] font-bold'} variant="ghost">{job?.salary} LPA</Badge>
+      <div className='flex items-center gap-1 md:gap-2 lg:gap-3'>
+        <Badge className={'text-blue-700 font-bold flex-1'} variant="ghost">{job?.position} Positions</Badge>
+        <Badge className={'text-[#F83002] font-bold flex-1'} variant="ghost">{job?.jobType}</Badge>
+        <Badge className={'text-[#7209b7] font-bold flex-1'} variant="ghost">{job?.salary} LPA</Badge>
       </div>
     </div>
   )

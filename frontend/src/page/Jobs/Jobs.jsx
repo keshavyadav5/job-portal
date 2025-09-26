@@ -27,15 +27,15 @@ const Jobs = () => {
     return (
         <div>
             <Navbar />
-            <div className='max-w-7xl mx-auto mt-5'>
-                <div className='flex gap-5'>
+            <div className='max-w-3xl mx-8 md:max-w-4xl lg:max-w-5xl md:mx-auto mt-20'>
+                <div className='flex flex-col md:flex-row gap-2 md:gap-5'>
                     <div className='w-20%'>
                         <FilterCard />
                     </div>
                     {
                         filterJobs.length <= 0 ? <span>Job not found</span> : (
-                            <div className='flex-1 h-[88vh] overflow-y-auto pb-5'>
-                                <div className='grid grid-cols-3 gap-4'>
+                            <div className='flex-1 h-[88vh] overflow-y-auto pb-5 example'>
+                                <div className='grid grid-cols-1 sm:grid-cols-2 gap-4 my-5'>
                                     {
                                         filterJobs.map((job) => (
                                             <motion.div
