@@ -1,6 +1,9 @@
 import User from '../models/user.model.js'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
+import getDataUri from '../utils/datauri.js';
+import cloudinary from '../utils/cloudinary.js';
+import { deleteMedia, uploadMedia } from '../middlewares/cloud/cloudinary.js';
 
 export const register = async (req, res) => {
   try {
@@ -12,6 +15,10 @@ export const register = async (req, res) => {
         success: false
       });
     };
+    const file = req.file;
+    const fileUri = getDataUri(file);
+    const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
+
     const user = await User.findOne({ email });
     if (user) {
       return res.status(400).json({
@@ -26,7 +33,10 @@ export const register = async (req, res) => {
       email,
       phoneNumber,
       password: hashedPassword,
-      role
+      role,
+      profile: {
+        profilePhoto: cloudResponse.secure_url,
+      }
     });
 
     return res.status(201).json({
@@ -35,10 +45,6 @@ export const register = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({
-      message: "Internal server error",
-      success: false
-    })
   }
 }
 
@@ -116,49 +122,39 @@ export const logout = async (req, res) => {
   }
 }
 
+// Update user profile
 export const updateProfile = async (req, res) => {
   try {
     const { fullname, email, phoneNumber, bio, skills } = req.body;
+    let user = await User.findById(req.id);
 
-    let skillsArray;
-    if (skills) {
-      skillsArray = skills.split(",");
+    if (!user) return res.status(400).json({ message: "User not found", success: false });
+
+    // Update text fields
+    if (fullname) user.fullname = fullname;
+    if (email) user.email = email;
+    if (phoneNumber) user.phoneNumber = phoneNumber;
+    if (bio) user.profile.bio = bio;
+    if (skills) user.profile.skills = skills.split(",");
+
+    // Upload files to Cloudinary
+    if (req.files?.profilePhoto?.[0]) {
+      const uploadedPhoto = await uploadMedia(req.files.profilePhoto[0].path); // profile image
+      user.profile.profilePhoto = uploadedPhoto.secure_url;
     }
-    const userId = req.id;
-    let user = await User.findById(userId);
-    if (!user) {
-      return res.status(400).json({
-        message: "User not found",
-        success: false
-      })
+
+    if (req.files?.resume?.[0]) {
+      const uploadedResume = await uploadMedia(req.files.resume[0].path, "raw"); // resume PDF/DOC
+      user.profile.resumeOriginalName = req.files.resume[0].originalname;
+      user.profile.resume = uploadedResume.secure_url;
     }
 
-    if (fullname) user.fullname = fullname
-    if (email) user.email = email
-    if (phoneNumber) user.phoneNumber = phoneNumber
-    if (bio) user.profile.bio = bio
-    if (skills) user.profile.skills = skillsArray
+    await user.save();
 
-    // resume
-
-    await user.save()
-    user = {
-      _id: user._id,
-      fullname: user.fullname,
-      email: user.email,
-      phoneNumber: user.phoneNumber,
-      profile: user.profile
-    }
-    return res.status(200).json({
-      message: "Profile Update Successfully",
-      success: true,
-      user
-    })
+    return res.status(200).json({ user, success: true, message: "Profile updated successfully" });
   } catch (error) {
-    console.log(error)
-    return res.status(500).json({
-      message: "Internal server error",
-      success: false
-    })
+    console.error(error);
+    return res.status(500).json({ message: "Something went wrong", success: false });
   }
-}
+};
+
