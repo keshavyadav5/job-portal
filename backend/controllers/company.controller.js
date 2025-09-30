@@ -1,3 +1,4 @@
+import { uploadMedia } from '../middlewares/cloud/cloudinary.js';
 import Company from '../models/company.model.js'
 
 export const registerCompany = async (req, res) => {
@@ -84,28 +85,51 @@ export const getCompanyById = async (req, res) => {
 
 export const updateCompany = async (req, res) => {
   try {
+    if (!req.body) {
+      return res.status(400).json({
+        message: "No data received in body.",
+        success: false
+      });
+    }
+
     const { name, description, website, location } = req.body;
 
-    const updateData = { name, description, website, location };
+    const updateData = {};
+    if (name) updateData.name = name;
+    if (description) updateData.description = description;
+    if (website) updateData.website = website;
+    if (location) updateData.location = location;
 
-    const company = await Company.findByIdAndUpdate(req.params.id, updateData, { new: true });
+    // Upload files to Cloudinary
+    if (req.files?.logo?.[0]) {
+      const uploadedPhoto = await uploadMedia(req.files.logo[0].path); // profile image
+      updateData.logo = uploadedPhoto.secure_url;
+    }
+
+    const company = await Company.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      { new: true }
+    );
 
     if (!company) {
       return res.status(404).json({
         message: "Company not found.",
         success: false
-      })
+      });
     }
+
     return res.status(200).json({
       message: "Company information updated.",
-      success: true
-    })
+      success: true,
+      company
+    });
 
   } catch (error) {
     console.log(error);
     return res.status(500).json({
       message: "Internal server error",
       success: false
-    })
+    });
   }
-}
+};

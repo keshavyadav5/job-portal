@@ -16,13 +16,9 @@ import {
   Sheet,
   SheetClose,
   SheetContent,
-  SheetDescription,
   SheetFooter,
   SheetHeader,
-  SheetTitle,
-  SheetTrigger,
 } from "@/components/ui/sheet"
-import { Label } from '@radix-ui/react-label'
 
 const Navbar = () => {
   const { user } = useSelector(store => store.auth);
@@ -44,7 +40,6 @@ const Navbar = () => {
       toast.error(error.response.data.message);
     }
   }
-
 
   function capitalize(str) {
     if (!str) return "";
