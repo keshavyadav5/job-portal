@@ -119,7 +119,9 @@
   }
 }
 
-
+body{
+  background-color: #fdfafa;
+}
 
 .example::-webkit-scrollbar {
   display: none;

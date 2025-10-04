@@ -14,6 +14,7 @@ import CompanySetup from './page/admin/CompanySetup'
 import AdminJobs from './page/admin/AdminJobs'
 import PostJob from './page/admin/PostJob'
 import Applicants from './page/admin/Applicants'
+import AuthLayout from './components/auth/AuthLayout'
 
 const appRouter = createBrowserRouter([
   {
@@ -22,11 +23,11 @@ const appRouter = createBrowserRouter([
   },
   {
     path: "/login",
-    element: <Login />
+    element: <AuthLayout><Login /></AuthLayout>
   },
   {
     path: '/signup',
-    element: <Signup />
+    element: <AuthLayout><Signup /></AuthLayout>
   },
   {
     path: '/jobs',

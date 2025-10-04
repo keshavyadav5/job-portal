@@ -1,23 +1,40 @@
 import User from '../models/user.model.js'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
-import getDataUri from '../utils/datauri.js';
-import cloudinary from '../utils/cloudinary.js';
 import { deleteMedia, uploadMedia } from '../middlewares/cloud/cloudinary.js';
+import passport from "passport";
+import { Strategy as GoogleStrategy } from "passport-google-oauth20";
 
 export const register = async (req, res) => {
   try {
-    const { fullname, email, phoneNumber, password, role } = req.body;
+    const {
+      fullname,
+      email,
+      phoneNumber,
+      password,
+      role,
+      firstNiche,
+      secondNiche,
+      thirdNiche,
+    } = req.body;
 
     if (!fullname || !email || !phoneNumber || !password || !role) {
       return res.status(400).json({
-        message: "Something is missing",
+        message: "All Fields Required",
         success: false
       });
     };
-    const file = req.file;
-    const fileUri = getDataUri(file);
-    const cloudResponse = await cloudinary.uploader.upload(fileUri.content);
+
+    if (role === "student" && (!firstNiche || !secondNiche || !thirdNiche)) {
+      return res.status(400).json({
+        message: "Please provide your prefered job niches."
+      })
+    }
+
+    let uploadedPhoto = ''
+    if (req.files?.profilePhoto?.[0]) {
+      uploadedPhoto = await uploadMedia(req.files.profilePhoto[0].path); // profile image
+    }
 
     const user = await User.findOne({ email });
     if (user) {
@@ -34,8 +51,13 @@ export const register = async (req, res) => {
       phoneNumber,
       password: hashedPassword,
       role,
+      niches: {
+        firstNiche,
+        secondNiche,
+        thirdNiche,
+      },
       profile: {
-        profilePhoto: cloudResponse.secure_url,
+        profilePhoto: uploadedPhoto.secure_url,
       }
     });
 
@@ -93,7 +115,7 @@ export const login = async (req, res) => {
       profile: user.profile
     }
 
-    return res.status(200).cookie("token", token, { maxAge: 1 * 24 * 60 * 60 * 1000, httpsOnly: true, sameSite: 'strict' }).json({
+    return res.status(200).cookie("token", token, { maxAge: 1 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'strict' }).json({
       message: `Welcome back ${user.fullname}`,
       user,
       success: true
@@ -158,3 +180,86 @@ export const updateProfile = async (req, res) => {
   }
 };
 
+export const google = async (req, res) => {
+  const { fullname, email, profilePhoto } = req.body;
+  try {
+    let user = await User.findOne({ email });
+
+    if (user) {
+      const tokenData = { userId: user._id };
+      const token = jwt.sign(tokenData, process.env.SECRET_KEY, {
+        expiresIn: '1d'
+      });
+
+      const data = {
+        _id: user._id,
+        fullname: user.fullname,
+        email: user.email,
+        phoneNumber: user.phoneNumber,
+        role: user.role,
+        profile: user.profile
+      };
+
+      return res.status(200)
+        .cookie('token', token, { 
+          maxAge: 24 * 60 * 60 * 1000, 
+          httpOnly: true, 
+          sameSite: 'strict' 
+        })
+        .json({
+          message: `welcome back ${user.fullname}`,
+          success: true,
+          user: data
+        });
+
+    } else {
+
+      const generatePassword =
+        Math.random().toString(36).slice(-8) +
+        Math.random().toString().slice(-8);
+
+      const hashedPassword = bcrypt.hashSync(generatePassword, 10);
+
+      const newUser = new User({
+        fullname,
+        email,
+        password: hashedPassword,
+        profile: { profilePhoto }
+      });
+
+      await newUser.save();
+
+      const tokenData = { userId: newUser._id };
+      const token = jwt.sign(tokenData, process.env.SECRET_KEY, {
+        expiresIn: '1d'
+      });
+
+      const data = {
+        _id: newUser._id,
+        fullname: newUser.fullname,
+        email: newUser.email,
+        phoneNumber: newUser.phoneNumber,
+        role: newUser.role,
+        profile: newUser.profile
+      };
+
+      return res.status(200)
+        .cookie('token', token, { 
+          maxAge: 24 * 60 * 60 * 1000, 
+          httpOnly: true, 
+          sameSite: 'strict' 
+        })
+        .json({
+          message: `welcome ${newUser.fullname}`,
+          success: true,
+          user: data
+        });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message: "Internal Server Error",
+      success: false
+    });
+  }
+};

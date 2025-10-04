@@ -3,16 +3,20 @@ import mongoose from "mongoose";
 const userSchema = new mongoose.Schema({
   fullname: {
     type: String,
-    required: true
+    required: true,
+    minLength: [2, "Name must contain at least 2 characters"],
+    maxLength: [30, "Name cannot exceed 30 characters"]
   },
   email: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
   },
   phoneNumber: {
     type: Number,
-    required: true
+    default: null
+    // required: true,
+    // length: [10, "Number must be 10 characters"]
   },
   password: {
     type: String,
@@ -21,7 +25,12 @@ const userSchema = new mongoose.Schema({
   role: {
     type: String,
     enum: ['student', 'recruiter'],
-    required: true
+    default: "student"
+  },
+  niches: {
+    firstNiche: String,
+    secondNiche: String,
+    thirdNiche: String,
   },
   profile: {
     bio: { type: String },
