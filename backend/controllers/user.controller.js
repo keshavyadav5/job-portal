@@ -2,8 +2,8 @@ import User from '../models/user.model.js'
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { deleteMedia, uploadMedia } from '../middlewares/cloud/cloudinary.js';
-import passport from "passport";
-import { Strategy as GoogleStrategy } from "passport-google-oauth20";
+import { verifyMail } from '../emailVerify/verifyMail.js';
+import Session from '../models/session.model.js'
 
 export const register = async (req, res) => {
   try {
@@ -45,7 +45,7 @@ export const register = async (req, res) => {
     }
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await User.create({
+    const newUser = await User.create({
       fullname,
       email,
       phoneNumber,
@@ -61,6 +61,11 @@ export const register = async (req, res) => {
       }
     });
 
+    const token = jwt.sign({ id: newUser._id }, process.env.SECRET_KEY, { expiresIn: '10m' })
+    verifyMail(token, email);
+    newUser.token = token
+    await newUser.save();
+
     return res.status(201).json({
       message: "Account created successfully.",
       success: true
@@ -70,41 +75,126 @@ export const register = async (req, res) => {
   }
 }
 
+export const verification = async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res.status(401).json({
+        success: false,
+        message: "Authorization token is missing or invalid"
+      })
+    }
+    console.log("auth header", req.headers)
+    const token = authHeader.split(" ")[1]
+
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.SECRET_KEY)
+    } catch (err) {
+      if (err.name === "TokenExpiredError") {
+        return res.status(400).json({
+          success: false,
+          message: "The registration token has expired"
+        })
+      }
+      return res.status(400).json({
+        success: false,
+        message: "Token verification failed"
+      })
+    }
+    const user = await User.findById(decoded.id)
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found"
+      })
+    }
+
+    user.token = null
+    user.isVerified = true
+    await user.save()
+
+    return res.status(200).json({
+      success: true,
+      message: "Email verified successfully"
+    })
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    })
+  }
+}
+
 export const login = async (req, res) => {
   try {
     const { email, password, role } = req.body;
+
     if (!email || !password || !role) {
       return res.status(400).json({
-        message: "Something is missing",
-        success: false
+        message: "All fields are required",
+        success: false,
       });
-    };
+    }
+
     let user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({
-        message: "Incorrect email or password.",
+        message: "Invalid email or password.",
         success: false,
-      })
+      });
     }
+
     const isPasswordMatch = await bcrypt.compare(password, user.password);
     if (!isPasswordMatch) {
       return res.status(400).json({
-        message: "Incorrect email or password.",
+        message: "Invalid email or password.",
         success: false,
-      })
-    };
-    // check role is correct or not
+      });
+    }
+
     if (role !== user.role) {
       return res.status(400).json({
         message: "Account doesn't exist with current role.",
-        success: false
-      })
-    };
-
-    const tokenData = {
-      userId: user._id
+        success: false,
+      });
     }
-    const token = await jwt.sign(tokenData, process.env.SECRET_KEY, { expiresIn: '1d' });
+
+    if (!user.isVerified) {
+      return res.status(403).json({
+        success: false,
+        message: "Verify your account then login",
+      });
+    }
+
+    await Session.deleteOne({ userId: user._id });
+    await Session.create({ userId: user._id });
+
+    const accessToken = jwt.sign(
+      { id: user._id },
+      process.env.SECRET_KEY,
+      { expiresIn: "15m" }
+    );
+
+    const refreshToken = jwt.sign(
+      { id: user._id },
+      process.env.SECRET_KEY,
+      { expiresIn: "7d" }
+    );
+
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: true,        
+      sameSite: "strict",
+      maxAge: 15 * 60 * 1000, 
+    });
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
 
     user = {
       _id: user._id,
@@ -112,37 +202,54 @@ export const login = async (req, res) => {
       email: user.email,
       phoneNumber: user.phoneNumber,
       role: user.role,
-      profile: user.profile
-    }
+      profile: user.profile,
+    };
 
-    return res.status(200).cookie("token", token, { maxAge: 1 * 24 * 60 * 60 * 1000, httpOnly: true, sameSite: 'strict' }).json({
+    return res.status(200).json({
       message: `Welcome back ${user.fullname}`,
       user,
-      success: true
-    })
+      success: true,
+    });
+
   } catch (error) {
     console.log(error);
     return res.status(500).json({
       message: "Internal server error",
-      success: false
-    })
+      success: false,
+    });
   }
-}
+};
 
 export const logout = async (req, res) => {
   try {
-    return res.status(200).cookie('token', "", { maxAge: 0 }).json({
-      message: "logged out successfully",
-      success: true
-    })
+    const userId = req.id;
+
+    await Session.deleteMany({ userId });
+
+    res.clearCookie("accessToken", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+    });
+
+    res.clearCookie("refreshToken", {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Logged out successfully",
+    });
+
   } catch (error) {
-    console.log(error)
     return res.status(500).json({
-      message: "Internal server error",
-      success: false
-    })
+      success: false,
+      message: error.message,
+    });
   }
-}
+};
 
 // Update user profile
 export const updateProfile = async (req, res) => {
@@ -197,14 +304,15 @@ export const google = async (req, res) => {
         email: user.email,
         phoneNumber: user.phoneNumber,
         role: user.role,
-        profile: user.profile
+        profile: user.profile,
+        isVerified: true
       };
 
       return res.status(200)
-        .cookie('token', token, { 
-          maxAge: 24 * 60 * 60 * 1000, 
-          httpOnly: true, 
-          sameSite: 'strict' 
+        .cookie('token', token, {
+          maxAge: 24 * 60 * 60 * 1000,
+          httpOnly: true,
+          sameSite: 'strict'
         })
         .json({
           message: `welcome back ${user.fullname}`,
@@ -224,7 +332,8 @@ export const google = async (req, res) => {
         fullname,
         email,
         password: hashedPassword,
-        profile: { profilePhoto }
+        profile: { profilePhoto },
+        isVerified: true,
       });
 
       await newUser.save();
@@ -240,14 +349,15 @@ export const google = async (req, res) => {
         email: newUser.email,
         phoneNumber: newUser.phoneNumber,
         role: newUser.role,
-        profile: newUser.profile
+        profile: newUser.profile,
+        isVerified: true
       };
 
       return res.status(200)
-        .cookie('token', token, { 
-          maxAge: 24 * 60 * 60 * 1000, 
-          httpOnly: true, 
-          sameSite: 'strict' 
+        .cookie('token', token, {
+          maxAge: 24 * 60 * 60 * 1000,
+          httpOnly: true,
+          sameSite: 'strict'
         })
         .json({
           message: `welcome ${newUser.fullname}`,

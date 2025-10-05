@@ -22,7 +22,8 @@ app.use(cookieParser());
 // CORS - must be before session if using credentials
 const corsOptions = {
   origin: 'http://localhost:5173',
-  credentials: true
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization']
 };
 app.use(cors(corsOptions));
 

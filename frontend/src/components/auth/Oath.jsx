@@ -5,6 +5,7 @@ import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { useGoogleLoginMutation } from "@/utils/api/userApiSlice";
 import { setUser } from "@/redux/authSlice";
+import { Loader2 } from "lucide-react";
 
 const Oath = () => {
   const auth = getAuth(app);
@@ -40,12 +41,12 @@ const Oath = () => {
         onClick={handleGoogleLogin}
         className="shadow-md cursor-pointer w-full items-center py-2 rounded-lg flex justify-center gap-2"
       >
-        <img
+
+        {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <img
           className="w-6"
           src="https://imagepng.org/wp-content/uploads/2019/08/google-icon.png"
           alt="google icon"
-        />
-        Continue with Google
+        />}Continue with Google
       </button>
     </div>
   );

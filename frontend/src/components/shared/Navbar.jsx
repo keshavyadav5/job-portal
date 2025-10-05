@@ -40,7 +40,6 @@ const Navbar = () => {
       toast.error(error.response.data.message);
     }
   }
-
   function capitalize(str) {
     if (!str) return "";
     return str
@@ -88,8 +87,8 @@ const Navbar = () => {
           {
             !user ? (
               <div className='flex items-center gap-2'>
-                <Link to="/login"><Button variant="outline">Login</Button></Link>
-                <Link to="/signup"><Button className="bg-[#6A38C2] hover:bg-[#5b30a6]">Signup</Button></Link>
+                <Link to="/login" ><Button variant="outline" className="bg-[#6A38C2] text-white hover:bg-[#5017b3] hover:text-white cursor-pointer">Get Started</Button></Link>
+                {/* <Link to="/signup"><Button className="bg-[#6A38C2] hover:bg-[#5b30a6]">Signup</Button></Link> */}
               </div>
             ) : (
               <Popover >
@@ -102,7 +101,10 @@ const Navbar = () => {
                   <div className=''>
                     <div className='flex gap-2 space-y-2'>
                       <Avatar className="cursor-pointer">
-                        <AvatarImage src={user?.profile?.profilePhoto || "https://github.com/shadcn.png"} alt="@shadcn" />
+                        <AvatarImage
+                          src={user?.profile?.profilePhoto || "https://github.com/shadcn.png"}
+                          alt="@shadcn"
+                        />
                       </Avatar>
                       <div>
                         <h4 className='font-medium'>{capitalize(user?.fullname)}</h4>
@@ -138,8 +140,8 @@ const Navbar = () => {
             user ?
               <Menu onClick={() => { setOpen(!open) }} />
               : <div className='flex items-center gap-2'>
-                <Link to="/login"><Button variant="outline">Login</Button></Link>
-                <Link to="/signup"><Button className="bg-[#6A38C2] hover:bg-[#5b30a6]">Signup</Button></Link>
+                <Link to="/login"><Button variant="outline" className="bg-[#6A38C2] text-white hover:bg-[#5017b3] hover:text-white cursor-pointer">Get Started</Button></Link>
+                {/* <Link to="/signup"><Button className="bg-[#6A38C2] hover:bg-[#5b30a6]">Signup</Button></Link> */}
               </div>
           }
         </div>
@@ -214,11 +216,11 @@ const MobileNavbar = ({ open, setOpen, user, logoutHandler, capitalize }) => {
           {!user ? (
             <div className="flex flex-col gap-2">
               <Link to="/login" onClick={() => setOpen(false)}>
-                <Button variant="outline" className="w-full">Login</Button>
+                <Button variant="outline" className="bg-[#6A38C2] text-white hover:bg-[#5017b3] hover:text-white cursor-pointer w-full">Get Started</Button>
               </Link>
-              <Link to="/signup" onClick={() => setOpen(false)}>
+              {/* <Link to="/signup" onClick={() => setOpen(false)}>
                 <Button className="w-full bg-[#6A38C2] hover:bg-[#5b30a6]">Signup</Button>
-              </Link>
+              </Link> */}
             </div>
           ) : (
             <div className="flex flex-col gap-3">

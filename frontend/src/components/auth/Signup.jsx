@@ -128,7 +128,7 @@ const Signup = () => {
       console.log(res)
       if (res.success) {
         toast.success(res.message);
-        navigate("/login");
+        navigate("/verify-email");
       }
     } catch (error) {
       console.log(error);

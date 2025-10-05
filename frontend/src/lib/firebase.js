@@ -3,7 +3,7 @@ import { initializeApp } from "firebase/app";
 import { getAnalytics } from "firebase/analytics";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyB_qrpQrJ3qeycNSPv9deBNBdQMmB3HGQ4",
+  apiKey: import.meta.env.VITE_API_KEY,
   authDomain: "job-portal-992.firebaseapp.com",
   projectId: "job-portal-992",
   storageBucket: "job-portal-992.firebasestorage.app",

@@ -15,6 +15,8 @@ import AdminJobs from './page/admin/AdminJobs'
 import PostJob from './page/admin/PostJob'
 import Applicants from './page/admin/Applicants'
 import AuthLayout from './components/auth/AuthLayout'
+import VerifyEmail from './components/auth/VerifyEmail'
+import Verify from './components/auth/Verify'
 
 const appRouter = createBrowserRouter([
   {
@@ -28,6 +30,14 @@ const appRouter = createBrowserRouter([
   {
     path: '/signup',
     element: <AuthLayout><Signup /></AuthLayout>
+  },
+  {
+    path: '/verify-email',
+    element: <VerifyEmail />
+  },
+  {
+    path: '/verify',
+    element: <Verify />
   },
   {
     path: '/jobs',
