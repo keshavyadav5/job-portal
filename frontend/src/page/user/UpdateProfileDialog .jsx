@@ -119,41 +119,45 @@ const UpdateProfileDialog = ({ open, setOpen }) => {
               />
             </div>
 
-            {/* Bio */}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="bio" className="text-right">Bio</Label>
-              <Input
-                id="bio"
-                name="bio"
-                value={input.bio}
-                onChange={changeEventHandler}
-                className="col-span-3"
-              />
-            </div>
+            {user?.role === "student" &&
+              <>
+                {/* Bio */}
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="bio" className="text-right">Bio</Label>
+                  <Input
+                    id="bio"
+                    name="bio"
+                    value={input.bio}
+                    onChange={changeEventHandler}
+                    className="col-span-3"
+                  />
+                </div>
 
-            {/* Skills */}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="skills" className="text-right">Skills</Label>
-              <Input
-                id="skills"
-                name="skills"
-                placeholder="e.g. HTML, CSS, React"
-                value={input.skills}
-                onChange={changeEventHandler}
-                className="col-span-3"
-              />
-            </div>
+                {/* Skills */}
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="skills" className="text-right">Skills</Label>
+                  <Input
+                    id="skills"
+                    name="skills"
+                    placeholder="e.g. HTML, CSS, React"
+                    value={input.skills}
+                    onChange={changeEventHandler}
+                    className="col-span-3"
+                  />
+                </div>
 
-            {/* Resume */}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="file" className="text-right">Resume</Label>
-              <Input
-                type="file"
-                accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*"
-                onChange={onChangeHandler}
-                className="col-span-3"
-              />
-            </div>
+                {/* Resume */}
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label htmlFor="file" className="text-right">Resume</Label>
+                  <Input
+                    type="file"
+                    accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,image/*"
+                    onChange={onChangeHandler}
+                    className="col-span-3"
+                  />
+                </div>
+              </>
+            }
 
             {/* Preview for images */}
             {preview && (

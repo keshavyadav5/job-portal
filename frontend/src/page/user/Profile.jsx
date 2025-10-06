@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Contact, Mail, Pen } from 'lucide-react'
+import { CircleCheck, CircleCheckBig, Contact, Mail, Pen, SquarePen, X } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
 import AppliedJobTable from './AppliedJobTable'
@@ -19,13 +19,83 @@ import { Loader2 } from "lucide-react";
 import axios from 'axios'
 import { USER_API_END_POINT } from '@/utils/constant';
 import Footer from '@/components/shared/Footer'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+
+
+
+const nichesArray = [
+  "Software Development",
+  "Web Development",
+  "Cybersecurity",
+  "Data Science",
+  "Artificial Intelligence",
+  "Cloud Computing",
+  "DevOps",
+  "Mobile App Development",
+  "Blockchain",
+  "Database Administration",
+  "Network Administration",
+  "UI/UX Design",
+  "Game Development",
+  "IoT (Internet of Things)",
+  "Big Data",
+  "Machine Learning",
+  "IT Project Management",
+  "IT Support and Helpdesk",
+  "Systems Administration",
+  "IT Consulting",
+];
 
 const Profile = () => {
   useGetAppliedJobs();
   const [open, setOpen] = useState(false);
   const [profilePhotoDialogOpen, setProfilePhotoDialogOpen] = useState(false)
   const { user } = useSelector(store => store.auth);
+  const [niche, setNiche] = useState(false)
+  const [firstNiche, setFirstNiche] = useState(user?.niches?.firstNiche || "");
+  const [secondNiche, setSecondNiche] = useState(user?.niches?.secondNiche || "");
+  const [thirdNiche, setThirdNiche] = useState(user?.niches?.thirdNiche || "");
+  const dispatch = useDispatch();
 
+  const getAvailableNiches = (exclude = []) =>
+    nichesArray.filter((niche) => !exclude.filter(Boolean).includes(niche));
+
+  useEffect(() => {
+    if (user?.niches) {
+      setFirstNiche(user.niches.firstNiche || "");
+      setSecondNiche(user.niches.secondNiche || "");
+      setThirdNiche(user.niches.thirdNiche || "");
+    }
+  }, [user?.niches?.firstNiche, user?.niches?.secondNiche, user?.niches?.thirdNiche]);
+
+  const handleUpadteNiche = async (e) => {
+    e.preventDefault();
+    const formData = new FormData();
+    formData.append("firstNiche", firstNiche);
+    formData.append("secondNiche", secondNiche);
+    formData.append("thirdNiche", thirdNiche);
+
+    try {
+      const res = await axios.put(`${USER_API_END_POINT}/profile/update`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+        withCredentials: true,
+      });
+      if (res.data.success) {
+        dispatch(setUser(res.data.user));
+        setFirstNiche(res.data.user.niches.firstNiche);
+        setSecondNiche(res.data.user.niches.secondNiche);
+        setThirdNiche(res.data.user.niches.thirdNiche);
+        toast.success(res.data.message);
+      }
+
+    } catch (error) {
+      console.error(error);
+      toast.error(error.response?.data?.message || "Something went wrong");
+    }
+    finally {
+      setNiche(false)
+    }
+  }
   function capitalize(str) {
     if (!str) return "";
     return str
@@ -49,8 +119,8 @@ const Profile = () => {
               />
             </Avatar>
             <div>
-              <h1 className='font-bold text-xl'>{capitalize(user?.fullname)}</h1>
-              <p className='text-justify'>{user?.profile?.bio}</p>
+              <span className='flex gap-1 items-center'><h1 className='font-bold text-xl'>{capitalize(user?.fullname)}</h1> {user?.isVerified ? <CircleCheckBig className='text-green-600 font-bold' size={12} /> : <X className='text-red-600 font-bold' size={12} />}</span>
+              <p className='text-justify'>{user?.profile?.bio || "Add bio..."}</p>
             </div>
           </div>
           <Button onClick={() => setOpen(true)} className="text-right absolute top-2 right-2" variant="outline">
@@ -65,25 +135,94 @@ const Profile = () => {
           </div>
           <div className='flex items-center gap-3 my-2 bg-slate-50 p-1 rounded sm:max-w-xs'>
             <Contact />
-            <span className='font-medium text-gray-600 w-full h-full'>{user?.phoneNumber}</span>
+            <span className='font-medium text-gray-600 w-full h-full'>{user?.phoneNumber || "Add your Contact number"}</span>
           </div>
         </div>
+        {user?.role === "student" &&
+          <>
+            <div className='my-5'>
+              <h1 className='text-md font-bold mb-3'>Skills</h1>
+              <div className='flex items-center gap-1 flex-wrap'>
+                {user?.profile?.skills?.length > 0
+                  ? user.profile.skills.map((item, index) => <Badge key={index}>{item}</Badge>)
+                  : <span>NA</span>}
+              </div>
+            </div>
 
-        <div className='my-5'>
-          <h1 className='text-md font-bold'>Skills</h1>
-          <div className='flex items-center gap-1 flex-wrap'>
-            {user?.profile?.skills?.length > 0
-              ? user.profile.skills.map((item, index) => <Badge key={index}>{item}</Badge>)
-              : <span>NA</span>}
-          </div>
-        </div>
+            <div className='grid w-full max-w-sm items-center gap-1.5'>
+              <Label className="text-md font-bold">Resume</Label>
+              {isResume
+                ? <a target='_blank' rel="noopener noreferrer" href={user.profile.resume} className='text-blue-500 w-full hover:underline cursor-pointer'>{user.profile.resumeOriginalName}</a>
+                : <span>NA</span>}
+            </div>
+          </>
+        }
 
-        <div className='grid w-full max-w-sm items-center gap-1.5'>
-          <Label className="text-md font-bold">Resume</Label>
-          {isResume
-            ? <a target='_blank' rel="noopener noreferrer" href={user.profile.resume} className='text-blue-500 w-full hover:underline cursor-pointer'>{user.profile.resumeOriginalName}</a>
-            : <span>NA</span>}
-        </div>
+        <form onSubmit={handleUpadteNiche}>
+          {user?.role === "student" && (
+            <>
+              <div className="flex flex-row gap-3 mt-5 items-center">
+                <Label className="text-md font-bold">Niches</Label>
+                <SquarePen size={16} className='cursor-pointer text-purple-500' onClick={() => setNiche(!niche)} />
+              </div>
+              <div className='flex flex-col md:flex-row items-center justify-between'>
+                <div className='flex flex-col gap-2 items-start mt-3'>
+                  <Label>First Niche</Label>
+                  <Select value={firstNiche || undefined} onValueChange={setFirstNiche} disabled={!niche}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select first niche" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {getAvailableNiches([secondNiche, thirdNiche]).map((nicheItem) => (
+                        <SelectItem key={nicheItem} value={nicheItem}>
+                          {nicheItem}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className='flex flex-col gap-2 items-start mt-3'>
+                  <Label>Second Niche</Label>
+                  <Select value={secondNiche || undefined} onValueChange={setSecondNiche} disabled={!niche}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select second niche" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {getAvailableNiches([firstNiche, thirdNiche]).map((nicheItem) => (
+                        <SelectItem key={nicheItem} value={nicheItem}>
+                          {nicheItem}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className='flex flex-col gap-2 items-start mt-3'>
+                  <Label>Third Niche</Label>
+                  <Select value={thirdNiche || undefined} onValueChange={setThirdNiche} disabled={!niche}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select third niche" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {getAvailableNiches([firstNiche, secondNiche]).map((nicheItem) => (
+                        <SelectItem key={nicheItem} value={nicheItem}>
+                          {nicheItem}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </>
+
+          )}
+          {niche && (
+            <Button type='submit' className='mt-2 bg-purple-800 hover:bg-purple-900 cursor-pointer'>
+              Update Niche
+            </Button>
+          )}
+        </form>
       </div>
 
       <div className='max-w-3xl lg:max-w-4xl md:mx-auto mx-4 bg-white rounded-2xl my-10'>

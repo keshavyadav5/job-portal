@@ -170,6 +170,7 @@ export const login = async (req, res) => {
     await Session.deleteOne({ userId: user._id });
     await Session.create({ userId: user._id });
 
+    // ✅ Generate tokens properly
     const accessToken = jwt.sign(
       { id: user._id },
       process.env.SECRET_KEY,
@@ -182,17 +183,18 @@ export const login = async (req, res) => {
       { expiresIn: "7d" }
     );
 
+    // ✅ Set cookies once (not duplicated)
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
-      secure: true,        
-      sameSite: "strict",
-      maxAge: 15 * 60 * 1000, 
+      secure: false, // true on production with HTTPS
+      sameSite: "lax",
+      maxAge: 15 * 60 * 1000,
     });
 
     res.cookie("refreshToken", refreshToken, {
       httpOnly: true,
-      secure: true,
-      sameSite: "strict",
+      secure: false,
+      sameSite: "lax",
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
@@ -203,6 +205,8 @@ export const login = async (req, res) => {
       phoneNumber: user.phoneNumber,
       role: user.role,
       profile: user.profile,
+      niches: user.niches,
+      isVerified: user.isVerified,
     };
 
     return res.status(200).json({
@@ -254,9 +258,8 @@ export const logout = async (req, res) => {
 // Update user profile
 export const updateProfile = async (req, res) => {
   try {
-    const { fullname, email, phoneNumber, bio, skills } = req.body;
+    const { fullname, email, phoneNumber, bio, skills, firstNiche, secondNiche, thirdNiche } = req.body;
     let user = await User.findById(req.id);
-
     if (!user) return res.status(400).json({ message: "User not found", success: false });
 
     // Update text fields
@@ -265,6 +268,9 @@ export const updateProfile = async (req, res) => {
     if (phoneNumber) user.phoneNumber = phoneNumber;
     if (bio) user.profile.bio = bio;
     if (skills) user.profile.skills = skills.split(",");
+    if (firstNiche) user.niches.firstNiche = firstNiche;
+    if (secondNiche) user.niches.secondNiche = secondNiche;
+    if (thirdNiche) user.niches.thirdNiche = thirdNiche;
 
     // Upload files to Cloudinary
     if (req.files?.profilePhoto?.[0]) {
@@ -292,43 +298,12 @@ export const google = async (req, res) => {
   try {
     let user = await User.findOne({ email });
 
-    if (user) {
-      const tokenData = { userId: user._id };
-      const token = jwt.sign(tokenData, process.env.SECRET_KEY, {
-        expiresIn: '1d'
-      });
-
-      const data = {
-        _id: user._id,
-        fullname: user.fullname,
-        email: user.email,
-        phoneNumber: user.phoneNumber,
-        role: user.role,
-        profile: user.profile,
-        isVerified: true
-      };
-
-      return res.status(200)
-        .cookie('token', token, {
-          maxAge: 24 * 60 * 60 * 1000,
-          httpOnly: true,
-          sameSite: 'strict'
-        })
-        .json({
-          message: `welcome back ${user.fullname}`,
-          success: true,
-          user: data
-        });
-
-    } else {
-
+    if (!user) {
       const generatePassword =
-        Math.random().toString(36).slice(-8) +
-        Math.random().toString().slice(-8);
-
+        Math.random().toString(36).slice(-8) + Math.random().toString().slice(-8);
       const hashedPassword = bcrypt.hashSync(generatePassword, 10);
 
-      const newUser = new User({
+      user = new User({
         fullname,
         email,
         password: hashedPassword,
@@ -336,40 +311,38 @@ export const google = async (req, res) => {
         isVerified: true,
       });
 
-      await newUser.save();
+      await user.save();
+    }
 
-      const tokenData = { userId: newUser._id };
-      const token = jwt.sign(tokenData, process.env.SECRET_KEY, {
-        expiresIn: '1d'
+    const token = jwt.sign({ id: user._id }, process.env.SECRET_KEY, { expiresIn: '1d' });
+
+    const data = {
+      _id: user._id,
+      fullname: user.fullname,
+      email: user.email,
+      phoneNumber: user.phoneNumber,
+      role: user.role,
+      profile: user.profile,
+      niches: user.niches || {},
+      isVerified: true
+    };
+
+    return res.status(200)
+      .cookie('accessToken', token, {
+        maxAge: 24 * 60 * 60 * 1000,
+        httpOnly: true,
+        sameSite: 'lax', // allow cross-origin requests from localhost
+        secure: false,   // true in production HTTPS
+      })
+      .json({
+        message: `Welcome ${user.fullname}`,
+        success: true,
+        user: data
       });
 
-      const data = {
-        _id: newUser._id,
-        fullname: newUser.fullname,
-        email: newUser.email,
-        phoneNumber: newUser.phoneNumber,
-        role: newUser.role,
-        profile: newUser.profile,
-        isVerified: true
-      };
-
-      return res.status(200)
-        .cookie('token', token, {
-          maxAge: 24 * 60 * 60 * 1000,
-          httpOnly: true,
-          sameSite: 'strict'
-        })
-        .json({
-          message: `welcome ${newUser.fullname}`,
-          success: true,
-          user: data
-        });
-    }
   } catch (error) {
     console.log(error);
-    return res.status(500).json({
-      message: "Internal Server Error",
-      success: false
-    });
+    return res.status(500).json({ message: "Internal Server Error", success: false });
   }
 };
+

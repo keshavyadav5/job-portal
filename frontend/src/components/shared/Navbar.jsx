@@ -112,16 +112,12 @@ const Navbar = () => {
                       </div>
                     </div>
                     <div className='flex flex-col my-2 text-gray-600'>
-                      {
-                        user && user.role === 'student' && (
-                          <div className='flex w-fit items-center gap-2 cursor-pointer'>
-                            <User2 />
-                            <Button variant="link" className="focus:outline-none border-none">
-                              <Link to="/profile">View Profile</Link>
-                            </Button>
-                          </div>
-                        )
-                      }
+                      <div className='flex w-fit items-center gap-2 cursor-pointer'>
+                        <User2 />
+                        <Button variant="link" className="focus:outline-none border-none">
+                          <Link to="/profile">View Profile</Link>
+                        </Button>
+                      </div>
 
                       <div className='flex w-fit items-center gap-2 cursor-pointer'>
                         <LogOut />
@@ -224,13 +220,11 @@ const MobileNavbar = ({ open, setOpen, user, logoutHandler, capitalize }) => {
             </div>
           ) : (
             <div className="flex flex-col gap-3">
-              {user.role === "student" && (
-                <Link to="/profile" onClick={() => setOpen(false)}>
-                  <Button variant="outline" className="w-full flex items-center gap-2">
-                    <User2 size={18} /> View Profile
-                  </Button>
-                </Link>
-              )}
+              <Link to="/profile" onClick={() => setOpen(false)}>
+                <Button variant="outline" className="w-full flex items-center gap-2">
+                  <User2 size={18} /> View Profile
+                </Button>
+              </Link>
               <Button
                 onClick={() => { logoutHandler(); setOpen(false); }}
                 variant="destructive"

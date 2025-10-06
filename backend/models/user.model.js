@@ -28,9 +28,9 @@ const userSchema = new mongoose.Schema({
     default: "student"
   },
   niches: {
-    firstNiche: String,
-    secondNiche: String,
-    thirdNiche: String,
+    firstNiche: { type: String, default: "" },
+    secondNiche: { type: String, default: "" },
+    thirdNiche: { type: String, default: "" },
   },
   profile: {
     bio: { type: String },

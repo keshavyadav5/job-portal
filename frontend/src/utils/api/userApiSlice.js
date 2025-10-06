@@ -8,6 +8,7 @@ export const userApiSlice = apliSlice.injectEndpoints({
         url: `${USER_API_END_POINT}/register`,
         method: "POST",
         body: data,
+        credentials: 'include',
       }),
     }),
 
@@ -15,7 +16,7 @@ export const userApiSlice = apliSlice.injectEndpoints({
       query: (data) => ({
         url: `${USER_API_END_POINT}/google`,
         method: "POST",
-        body: data
+        body: data,
       })
     }),
 
@@ -23,7 +24,7 @@ export const userApiSlice = apliSlice.injectEndpoints({
       query: (data) => ({
         url: `${USER_API_END_POINT}/login`,
         method: 'POST',
-        body: data
+        body: data,
       })
     }),
 
