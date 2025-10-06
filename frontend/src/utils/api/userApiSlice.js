@@ -35,6 +35,14 @@ export const userApiSlice = apliSlice.injectEndpoints({
       })
     }),
 
+    updateProfile: builder.mutation({
+      query: (data) => ({
+        url: `${USER_API_END_POINT}/profile/update`,
+        method: 'PUT',
+        body: data
+      })
+    })
+
 
   })
 })
@@ -44,4 +52,5 @@ export const {
   useLogoutMutation,
   useRegisterMutation,
   useGoogleLoginMutation,
+  useUpdateProfileMutation,
 } = userApiSlice

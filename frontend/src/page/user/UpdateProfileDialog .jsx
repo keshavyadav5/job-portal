@@ -10,10 +10,9 @@ import { USER_API_END_POINT } from '@/utils/constant';
 import { setUser } from '@/redux/authSlice';
 import { toast } from 'sonner';
 
-const UpdateProfileDialog = ({ open, setOpen }) => {
+const UpdateProfileDialog = ({ open, setOpen, updateProfile, loading }) => {
   const [preview, setPreview] = useState(null);
   const [resume, setResume] = useState(null);
-  const [loading, setLoading] = useState(false);
   const { user } = useSelector(store => store.auth);
   const dispatch = useDispatch();
 
@@ -54,23 +53,17 @@ const UpdateProfileDialog = ({ open, setOpen }) => {
     if (resume) formData.append('resume', resume); // must match multer field
 
     try {
-      setLoading(true);
-      const res = await axios.put(`${USER_API_END_POINT}/profile/update`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-        withCredentials: true
-      });
+      const res = await updateProfile(formData).unwrap();
 
-      if (res.data.success) {
-        dispatch(setUser(res.data.user));
-        toast.success(res.data.message);
+      if (res.success) {
+        dispatch(setUser(res.user));
+        toast.success(res.message);
         setOpen(false);
       }
     } catch (error) {
       console.error(error);
-      toast.error(error.response?.data?.message || 'Something went wrong');
-    } finally {
-      setLoading(false);
-    }
+      toast.error(error.response?.message || 'Something went wrong');
+    } 
   };
 
   return (

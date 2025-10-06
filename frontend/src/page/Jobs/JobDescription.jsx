@@ -3,10 +3,11 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
-import { APPLICATION_API_END_POINT, JOB_API_END_POINT } from '@/utils/constant';
+import { APPLICATION_API_END_POINT } from '@/utils/constant';
 import { setSingleJob } from '@/redux/jobSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'sonner';
+import { useAppliedStatusMutation } from '@/utils/api/applicantApiSlice';
 
 const JobDescription = () => {
     const { singleJob } = useSelector(store => store.job);
@@ -15,11 +16,33 @@ const JobDescription = () => {
     const [isApplied, setIsApplied] = useState(false);
     const [loading, setLoading] = useState(true);
 
+    const [appliedStatus] = useAppliedStatusMutation();
+
     const params = useParams();
     const jobId = params.id;
     const dispatch = useDispatch();
 
+    const canApply = () => {
+        if (!user?.isVerified) {
+            return { canApply: false, message: "Please verify your account first" };
+        }
+        if (!user?.profile?.resume) {
+            return { canApply: false, message: "Please upload your resume first" };
+        }
+        if (!user?.phoneNumber) {
+            return { canApply: false, message: "Please add your contact number" };
+        }
+        return { canApply: true, message: "" };
+    };
+
     const applyJobHandler = async () => {
+        const eligibility = canApply();
+
+        if (!eligibility.canApply) {
+            toast.error(eligibility.message);
+            return;
+        }
+
         try {
             const res = await axios.get(`${APPLICATION_API_END_POINT}/apply/${jobId}`, { withCredentials: true });
             if (res.data.success) {
@@ -33,22 +56,16 @@ const JobDescription = () => {
             }
         } catch (error) {
             console.log(error);
-            toast.error(error.response?.data?.message || "Something went wrong");
+            toast.error(error?.message || "Something went wrong");
         }
     };
 
     useEffect(() => {
         const fetchSingleJobStatus = async () => {
             try {
-                const res = await axios.post(
-                    `http://localhost:3000/api/v1/application/status/${jobId}`,
-                    {},
-                    { withCredentials: true }
-                );
-                console.log("res.data.success", res.data)
-
-                if (res.data.succees) {
-                    setIsApplied(res.data.applied);
+                const res = await appliedStatus(jobId).unwrap();
+                if (res.success) {
+                    setIsApplied(res.applied);
                 }
             } catch (error) {
                 console.log(error.response?.data || error.message);
@@ -60,12 +77,21 @@ const JobDescription = () => {
         fetchSingleJobStatus();
     }, [jobId]);
 
-    console.log("isApplied", isApplied)
-
-
     if (!singleJob) {
         return <p className="text-center my-10">Loading job details...</p>;
     }
+
+    // Get button state
+    const eligibility = canApply();
+    const isDisabled = isApplied || loading || !eligibility.canApply;
+
+    // Determine button text
+    const getButtonText = () => {
+        if (loading) return 'Loading...';
+        if (isApplied) return 'Already Applied';
+        if (!eligibility.canApply) return eligibility.message;
+        return 'Apply Now';
+    };
 
     return (
         <div className='max-w-3xl lg:max-w-5xl mx-4 md:mx-auto my-10'>
@@ -79,11 +105,11 @@ const JobDescription = () => {
                     </div>
                 </div>
                 <Button
-                    onClick={!isApplied ? applyJobHandler : null}
-                    disabled={isApplied || loading}
-                    className={`rounded-lg max-w-[200px] ${isApplied ? 'bg-gray-600 cursor-not-allowed' : 'bg-[#7209b7] hover:bg-[#5f32ad]'}`}
+                    onClick={applyJobHandler}
+                    disabled={isDisabled}
+                    className={`rounded-lg max-w-[200px] ${isDisabled ? 'bg-gray-600 cursor-not-allowed' : 'bg-[#7209b7] hover:bg-[#5f32ad]'}`}
                 >
-                    {loading ? 'Loading...' : isApplied ? 'Already Applied' : 'Apply Now'}
+                    {getButtonText()}
                 </Button>
             </div>
 

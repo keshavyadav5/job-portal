@@ -114,13 +114,13 @@ export const isApplied = async (req, res) => {
         if (!status) {
             return res.status(401).json({
                 message: "Not Applied",
-                succees: false,
+                success: false,
                 applied: false
             })
         }
 
         return res.status(200).json({
-            succees: true,
+            success: true,
             messag: 'Applied',
             applied: true
         })
@@ -129,7 +129,7 @@ export const isApplied = async (req, res) => {
         console.log(error)
         return res.status(500).json({
             message: "Internal Server Error",
-            succees: false
+            success: false
         })
     }
 }

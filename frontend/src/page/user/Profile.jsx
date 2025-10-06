@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { CircleCheck, CircleCheckBig, Contact, Mail, Pen, SquarePen, X } from 'lucide-react'
+import { CircleCheckBig, Contact, Mail, Pen, SquarePen, X } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
 import AppliedJobTable from './AppliedJobTable'
@@ -16,10 +16,9 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Loader2 } from "lucide-react";
-import axios from 'axios'
-import { USER_API_END_POINT } from '@/utils/constant';
 import Footer from '@/components/shared/Footer'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { useUpdateProfileMutation } from '@/utils/api/userApiSlice'
 
 
 
@@ -68,6 +67,8 @@ const Profile = () => {
     }
   }, [user?.niches?.firstNiche, user?.niches?.secondNiche, user?.niches?.thirdNiche]);
 
+  const [updateProfile, { isLoading: loading }] = useUpdateProfileMutation()
+
   const handleUpadteNiche = async (e) => {
     e.preventDefault();
     const formData = new FormData();
@@ -76,21 +77,18 @@ const Profile = () => {
     formData.append("thirdNiche", thirdNiche);
 
     try {
-      const res = await axios.put(`${USER_API_END_POINT}/profile/update`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-        withCredentials: true,
-      });
-      if (res.data.success) {
-        dispatch(setUser(res.data.user));
-        setFirstNiche(res.data.user.niches.firstNiche);
-        setSecondNiche(res.data.user.niches.secondNiche);
-        setThirdNiche(res.data.user.niches.thirdNiche);
-        toast.success(res.data.message);
+      const res = await updateProfile(formData).unwrap();
+      if (res.success) {
+        dispatch(setUser(res?.user));
+        setFirstNiche(res?.user?.niches?.firstNiche);
+        setSecondNiche(res?.user?.niches?.secondNiche);
+        setThirdNiche(res?.user?.niches?.thirdNiche);
+        toast.success(res?.message);
       }
 
     } catch (error) {
       console.error(error);
-      toast.error(error.response?.data?.message || "Something went wrong");
+      toast.error(error.response?.message || "Something went wrong");
     }
     finally {
       setNiche(false)
@@ -230,9 +228,9 @@ const Profile = () => {
         <AppliedJobTable />
       </div>
 
-      <UpdateProfileDialog open={open} setOpen={setOpen} />
+      <UpdateProfileDialog open={open} setOpen={setOpen} updateProfile={updateProfile} loading={loading} />
 
-      <UpdateProfileImage open={profilePhotoDialogOpen} setOpen={setProfilePhotoDialogOpen} />
+      <UpdateProfileImage open={profilePhotoDialogOpen} setOpen={setProfilePhotoDialogOpen} updateProfile={updateProfile} loading={loading} />
       <Footer />
     </div>
   )
@@ -244,10 +242,9 @@ export default Profile
 
 
 
-const UpdateProfileImage = ({ open, setOpen }) => {
+const UpdateProfileImage = ({ open, setOpen, updateProfile, loading }) => {
   const [profileImage, setProfileImage] = useState(null);
   const [preview, setPreview] = useState(null);
-  const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
 
   const onChangeHandler = (e) => {
@@ -270,21 +267,15 @@ const UpdateProfileImage = ({ open, setOpen }) => {
     formData.append("profilePhoto", profileImage);
 
     try {
-      setLoading(true);
-      const res = await axios.put(`${USER_API_END_POINT}/profile/update`, formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-        withCredentials: true,
-      });
-      if (res.data.success) {
-        dispatch(setUser(res.data.user));
-        toast.success(res.data.message);
+      const res = await updateProfile(formData).unwrap()
+      if (res.success) {
+        dispatch(setUser(res.user));
+        toast.success(res.message);
         setOpen(false);
       }
     } catch (error) {
       console.error(error);
-      toast.error(error.response?.data?.message || "Something went wrong");
-    } finally {
-      setLoading(false);
+      toast.error(error.response?.message || "Something went wrong");
     }
   };
 
