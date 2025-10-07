@@ -1,7 +1,7 @@
-import { apliSlice } from "./apiSlice";
+import { apiSlice } from "./apiSlice";
 import { USER_API_END_POINT } from '../constant'
 
-export const userApiSlice = apliSlice.injectEndpoints({
+export const userApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     register: builder.mutation({
       query: (data) => ({

@@ -1,8 +1,17 @@
 import { uploadMedia } from '../middlewares/cloud/cloudinary.js';
 import Company from '../models/company.model.js'
+import User from '../models/user.model.js'
 
 export const registerCompany = async (req, res) => {
   try {
+    const userId = req.id;
+    const user = await User.findById(userId);
+    if (user?.role !== 'recruiter') {
+      return res.status(400).json({
+        message: "unauthorized",
+        success: false
+      })
+    }
     const { companyName } = req.body;
     if (!companyName) {
       return res.status(400).json({
@@ -38,7 +47,14 @@ export const registerCompany = async (req, res) => {
 
 export const getCompany = async (req, res) => {
   try {
-    const userId = req.id; // logged in user id
+    const userId = req.id;
+    const user = await User.findById(userId);
+    if (user?.role !== 'recruiter') {
+      return res.status(400).json({
+        message: "unauthorized",
+        success: false
+      })
+    }
     const companies = await Company.find({ userId });
     if (!companies) {
       return res.status(404).json({
@@ -61,6 +77,14 @@ export const getCompany = async (req, res) => {
 
 export const getCompanyById = async (req, res) => {
   try {
+    const userId = req.id;
+    const user = await User.findById(userId);
+    if (user?.role !== 'recruiter') {
+      return res.status(400).json({
+        message: "unauthorized",
+        success: false
+      })
+    }
     const companyId = req.params.id;
     const company = await Company.findById(companyId);
     if (!company) {
@@ -75,6 +99,37 @@ export const getCompanyById = async (req, res) => {
     })
   } catch (error) {
     console.log(error);
+    return res.status(500).json({
+      message: "Internal server error",
+      success: false
+    })
+  }
+}
+
+export const deleteCompany = async (req, res) => {
+  try {
+    const userId = req.id;
+    const user = await User.findById(userId);
+    if (user?.role !== 'recruiter') {
+      return res.status(400).json({
+        message: "unauthorized",
+        success: false
+      })
+    }
+    const companyId = req.params.id;
+    const company = await Company.findByIdAndDelete(companyId);
+    if (!company) {
+      return res.status(404).json({
+        message: "Company not found.",
+        success: false
+      })
+    }
+    return res.status(200).json({
+      success: true,
+      message: "Compnay deleted successfully"
+    })
+  } catch (error) {
+    console.log("error", error);
     return res.status(500).json({
       message: "Internal server error",
       success: false

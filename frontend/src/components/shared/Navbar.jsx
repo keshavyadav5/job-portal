@@ -77,7 +77,7 @@ const Navbar = () => {
                 <>
                   <li><Link to="/">Home</Link></li>
                   <li><Link to="/jobs">Jobs</Link></li>
-                  <li><Link to="/browse">Browse</Link></li>
+                  {/* <li><Link to="/browse">Browse</Link></li> */}
                 </>
               )
             }
@@ -203,7 +203,7 @@ const MobileNavbar = ({ open, setOpen, user, logoutHandler, capitalize }) => {
                   <Link to="/jobs" onClick={() => setOpen(false)}>Jobs</Link>
                 </li>
                 <li className='bg-slate-100 w-full h-full p-2 rounded-sm'>
-                  <Link to="/browse" onClick={() => setOpen(false)}>Browse</Link>
+                  {/* <Link to="/browse" onClick={() => setOpen(false)}>Browse</Link> */}
                 </li>
               </>
             )}

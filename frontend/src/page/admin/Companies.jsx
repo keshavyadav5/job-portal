@@ -20,8 +20,8 @@ const Companies = () => {
   return (
     <div>
       <Navbar />
-      <div className='max-w-6xl mx-auto my-20'>
-        <div className='flex items-center justify-between my-5'>
+      <div className='max-w-3xl lg:max-w-4xl xl:max-w-5xl mx-4 md:mx-auto my-20'>
+        <div className='flex items-center justify-between my-5 gap-2'>
           <Input
             className="w-fit"
             placeholder="Filter by name"

@@ -6,7 +6,7 @@ import LatestJobCards from './LatestJobCards';
 const LatestJobs = () => {
   const { allJobs } = useSelector(store => store.job);
   return (
-    <div className='mx-3xl md:max-w-4xl mx-4 sm:mx-10 md:mx-8 lg:mx-auto my-20'>
+    <div className='mx-3xl md:max-w-4xl lg:max-w-5xl mx-4 sm:mx-10 md:mx-8 lg:mx-auto my-20'>
       <h1 className='text-2xl md:text-4xl font-bold text-center'><span className='text-[#6A38C2]'>Latest & Top </span> Job Openings</h1>
       <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3  gap-4 my-5 transition-all duration-300'>
         {

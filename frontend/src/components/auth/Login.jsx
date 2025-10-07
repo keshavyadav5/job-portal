@@ -39,7 +39,7 @@ const Login = () => {
       }
     } catch (error) {
       console.log(error);
-      toast.error(error.response?.data?.message || "Something went wrong");
+      toast.error(error?.data?.message || "Something went wrong");
     }
   }
 
@@ -69,7 +69,9 @@ const Login = () => {
 
             {/* Password */}
             <div className="space-y-1">
-              <Label>Password</Label>
+              <div className='flex items-center justify-between'>
+                <Label>Password</Label> <Link className='underline' to={'/forgot-password'}>Forgot Password</Link>
+              </div>
               <Input
                 type="password"
                 value={input.password}

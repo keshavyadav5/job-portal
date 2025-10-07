@@ -38,7 +38,7 @@ const CategoryCarousel = () => {
              className="md:basis-1/2 lg:basis-1/3"
             >
               <Button
-                className="w-full cursor-pointer bg-gray-700 text-white rounded-full hover:bg-gray-800"
+                className="w-full cursor-pointer bg-gray-700 text-white rounded-full hover:text-white hover:bg-gray-800"
                 onClick={() => searchJobHandler(cat)}
                 variant="outline"
               >

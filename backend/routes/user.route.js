@@ -1,11 +1,14 @@
 import express from 'express'
 import {
+  changePassword,
+  forgotPassword,
   google,
   login,
   logout,
   register,
   updateProfile,
-  verification
+  verification,
+  verifyOtp
 } from '../controllers/user.controller.js';
 import isAuthenticated from '../middlewares/isAuthenticated.js';
 import upload from '../middlewares/cloud/multer.js';
@@ -28,6 +31,10 @@ router.put(
   ]),
   updateProfile
 );
+
+router.route('/forgot-password').post(forgotPassword);
+router.route('/verify-otp/:email').post(verifyOtp);
+router.route('/change-password/:email').post(changePassword);
 
 router.route('/google').post(google);
 

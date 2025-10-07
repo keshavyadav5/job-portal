@@ -6,7 +6,7 @@ const baseQuery = fetchBaseQuery({
   credentials: "include", 
 });
 
-export const apliSlice = createApi({
+export const apiSlice = createApi({
   baseQuery,
   tagTypes: ['User', 'Company', 'Job', 'Applicant'],
   endpoints: () => ({})

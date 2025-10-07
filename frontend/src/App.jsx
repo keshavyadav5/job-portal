@@ -17,6 +17,9 @@ import Applicants from './page/admin/Applicants'
 import AuthLayout from './components/auth/AuthLayout'
 import VerifyEmail from './components/auth/VerifyEmail'
 import Verify from './components/auth/Verify'
+import ForgotPassword from './components/auth/ForgotPassword'
+import VerifyOTP from './components/auth/VerifyOTP'
+import ChangePassword from './components/auth/ChangePassword'
 
 const appRouter = createBrowserRouter([
   {
@@ -32,12 +35,24 @@ const appRouter = createBrowserRouter([
     element: <AuthLayout><Signup /></AuthLayout>
   },
   {
+    path: '/forgot-password',
+    element: <AuthLayout><ForgotPassword /></AuthLayout>
+  },
+  {
     path: '/verify-email',
-    element: <VerifyEmail />
+    element: <AuthLayout><VerifyEmail /></AuthLayout>
   },
   {
     path: '/verify',
-    element: <Verify />
+    element: <AuthLayout> <Verify /></AuthLayout>
+  },
+  {
+    path: '/verify-otp/:email',
+    element: <AuthLayout><VerifyOTP /></AuthLayout>
+  },
+  {
+    path: '/change-password/:email',
+    element: <AuthLayout><ChangePassword /></AuthLayout>
   },
   {
     path: '/jobs',
