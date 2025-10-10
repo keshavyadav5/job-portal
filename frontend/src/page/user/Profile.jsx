@@ -222,11 +222,16 @@ const Profile = () => {
           )}
         </form>
       </div>
-
-      <div className='max-w-3xl lg:max-w-4xl md:mx-auto mx-4 bg-white rounded-2xl my-10'>
-        <h1 className='font-bold text-xl my-5'>Applied Jobs</h1>
-        <AppliedJobTable />
-      </div>
+      {
+        user?.role === "recruiter" && <div className='mt-92'></div>
+      }
+      {
+        user?.role === '!student' &&
+        <div className='max-w-3xl lg:max-w-4xl md:mx-auto mx-4 bg-white rounded-2xl my-10'>
+          <h1 className='font-bold text-xl my-5'>Applied Jobs</h1>
+          <AppliedJobTable />
+        </div>
+      }
 
       <UpdateProfileDialog open={open} setOpen={setOpen} updateProfile={updateProfile} loading={loading} />
 

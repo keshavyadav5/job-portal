@@ -40,10 +40,10 @@ export const companyApiSlice = apiSlice.injectEndpoints({
       query: ({ formData, companyId }) => ({
         url: `${COMPANY_API_END_POINT}/update/${companyId}`,
         method: "PUT",
-        body: formData
+        body: formData,
       }),
-      invalidatesTags: ["Company"]
-    })
+      invalidatesTags: ["Company"],
+    }),
   }),
 });
 

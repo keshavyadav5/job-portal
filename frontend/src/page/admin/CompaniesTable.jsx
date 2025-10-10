@@ -1,5 +1,8 @@
-import React, { useState } from 'react'
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import React, { useEffect, useState } from 'react'
+import {
+  Table, TableBody, TableCaption, TableCell,
+  TableHead, TableHeader, TableRow
+} from '@/components/ui/table'
 import { Avatar, AvatarImage } from '@/components/ui/avatar'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Delete, Edit2, Loader2, MoreHorizontal, Trash2 } from 'lucide-react'
@@ -7,44 +10,79 @@ import { useNavigate } from 'react-router-dom'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
-import { useDeleteCompanyMutation, useGetAllCompanyQuery } from '@/utils/api/companySlice'
+import axios from 'axios'
+import { COMPANY_API_END_POINT } from '@/utils/constant'
+import { useDeleteCompanyMutation } from '@/utils/api/companySlice'
+import SessionExpire from '@/hooks/SessionExpire'
+import { useSelector } from 'react-redux'
 
 const CompaniesTable = () => {
-  const { data, isLoading, isError, error } = useGetAllCompanyQuery();
-  const [open, setOpen] = useState(false);
-  const [companyToDelete, setCompanyToDelete] = useState(null);
-  const navigate = useNavigate();
+  const [companies, setCompanies] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const [open, setOpen] = useState(false)
+  const [companyToDelete, setCompanyToDelete] = useState(null)
+  const [sessionExpired, setSessionExpired] = useState(false)
+  const navigate = useNavigate()
+  const [filterCompany, setFilterCompany] = useState(companies);
 
-  const companies = data?.companies || data || [];
+  const { searchCompanyByText } = useSelector(store => store.company);
+
+  useEffect(() => {
+    const fetchCompanies = async () => {
+      try {
+        const res = await axios.get(`${COMPANY_API_END_POINT}/get`, { withCredentials: true })
+        if (res.data.success) {
+          setCompanies(res.data.companies || [])
+        } else {
+          setError(new Error("Failed to load companies"))
+        }
+      } catch (err) {
+        console.error('Error fetching companies:', err.response?.status, err.response?.data)
+        if (err.response?.status === 401) {
+          setSessionExpired(true)
+        } else {
+          setError(err)
+        }
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchCompanies()
+  }, [])
+
+  useEffect(() => {
+    const filteredCompany = companies.length >= 0 && companies.filter((company) => {
+      if (!searchCompanyByText) {
+        return true
+      };
+      return company?.name?.toLowerCase().includes(searchCompanyByText.toLowerCase());
+
+    });
+    setFilterCompany(filteredCompany);
+  }, [companies, searchCompanyByText])
 
   const handleDelete = (company) => {
-    setCompanyToDelete(company);
-    setOpen(true);
-  };
+    setCompanyToDelete(company)
+    setOpen(true)
+  }
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="text-center py-8">
         <Loader2 className="h-8 w-8 animate-spin mx-auto text-gray-500" />
         <p className="text-gray-500 mt-2">Loading companies...</p>
       </div>
-    );
+    )
   }
 
-  if (isError) {
+  if (error && !sessionExpired) {
     return (
       <div className="text-center py-8">
-        <p className="text-red-500">Error loading companies: {error?.message || 'Something went wrong'}</p>
+        <p className="text-red-500">{error.message}</p>
       </div>
-    );
-  }
-
-  if (!companies || companies.length === 0) {
-    return (
-      <div className="text-center py-8">
-        <p className="text-gray-500">No companies registered yet.</p>
-      </div>
-    );
+    )
   }
 
   return (
@@ -61,7 +99,7 @@ const CompaniesTable = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {companies.map((company) => (
+          {filterCompany.map((company) => (
             <TableRow key={company._id}>
               <TableCell>
                 <Avatar>
@@ -102,35 +140,49 @@ const CompaniesTable = () => {
         </TableBody>
       </Table>
 
+      {/* Delete Company Dialog */}
       <DeleteCompanyById
         open={open}
         setOpen={setOpen}
         companyId={companyToDelete?._id}
         companyName={companyToDelete?.name}
+        onDeleted={() => {
+          setCompanies(prev => prev.filter(c => c._id !== companyToDelete._id))
+        }}
       />
+
+      {/* Session Expired Dialog */}
+      <SessionExpire open={sessionExpired} setOpen={setSessionExpired} />
     </div>
-  );
-};
+  )
+}
 
-export default CompaniesTable;
+export default CompaniesTable
 
-const DeleteCompanyById = ({ companyId, open, setOpen, companyName }) => {
-  const [deleteCompany, { isLoading: loading }] = useDeleteCompanyMutation();
-  
+
+// DELETE COMPANY COMPONENT
+const DeleteCompanyById = ({ companyId, open, setOpen, companyName, onDeleted }) => {
+  const [deleteCompany, { isLoading: loading }] = useDeleteCompanyMutation()
+
   const submitHandler = async () => {
     try {
-      const res = await deleteCompany(companyId).unwrap();
+      const res = await deleteCompany(companyId).unwrap()
       if (res?.success) {
-        toast.success(`${companyName} deleted successfully`);
+        toast.success(`${companyName} deleted successfully`)
+        onDeleted?.()
       } else {
-        toast.error(res.message || "Failed to delete company");
+        toast.error(res.message || "Failed to delete company")
       }
     } catch (error) {
-      toast.error(error.data?.message || "Something went wrong");
+      if (error?.status === 401) {
+        toast.error("Session expired. Please login again.")
+      } else {
+        toast.error(error?.data?.message || "Something went wrong")
+      }
     } finally {
-      setOpen(false);
+      setOpen(false)
     }
-  };
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -173,5 +225,5 @@ const DeleteCompanyById = ({ companyId, open, setOpen, companyName }) => {
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
-};
+  )
+}

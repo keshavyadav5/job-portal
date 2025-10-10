@@ -63,7 +63,7 @@ const UpdateProfileDialog = ({ open, setOpen, updateProfile, loading }) => {
     } catch (error) {
       console.error(error);
       toast.error(error.response?.message || 'Something went wrong');
-    } 
+    }
   };
 
   return (
@@ -111,21 +111,21 @@ const UpdateProfileDialog = ({ open, setOpen, updateProfile, loading }) => {
                 className="col-span-3"
               />
             </div>
+            {/* Bio */}
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="bio" className="text-right">Bio</Label>
+              <Input
+                id="bio"
+                name="bio"
+                value={input.bio}
+                onChange={changeEventHandler}
+                className="col-span-3"
+              />
+            </div>
+
 
             {user?.role === "student" &&
               <>
-                {/* Bio */}
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="bio" className="text-right">Bio</Label>
-                  <Input
-                    id="bio"
-                    name="bio"
-                    value={input.bio}
-                    onChange={changeEventHandler}
-                    className="col-span-3"
-                  />
-                </div>
-
                 {/* Skills */}
                 <div className="grid grid-cols-4 items-center gap-4">
                   <Label htmlFor="skills" className="text-right">Skills</Label>

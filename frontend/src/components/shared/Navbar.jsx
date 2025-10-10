@@ -5,8 +5,6 @@ import { Avatar, AvatarImage } from '../ui/avatar'
 import { LogOut, Menu, User2 } from 'lucide-react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import axios from 'axios'
-import { USER_API_END_POINT } from '@/utils/constant'
 import { setUser } from '@/redux/authSlice'
 import { toast } from 'sonner'
 
@@ -19,25 +17,27 @@ import {
   SheetFooter,
   SheetHeader,
 } from "@/components/ui/sheet"
+import { useLogoutMutation } from '@/utils/api/userApiSlice'
 
 const Navbar = () => {
   const { user } = useSelector(store => store.auth);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [logout] = useLogoutMutation()
 
   const [open, setOpen] = useState(false);
 
   const logoutHandler = async () => {
     try {
-      const res = await axios.post(`${USER_API_END_POINT}/logout`, { withCredentials: true });
-      if (res.data.success) {
+      const res = await logout().unwrap();
+      if (res.success) {
         dispatch(setUser(null));
         navigate("/");
-        toast.success(res.data.message);
+        toast.success(res?.message);
       }
     } catch (error) {
       console.log(error);
-      toast.error(error.response.data.message);
+      toast.error(error?.data?.message);
     }
   }
   function capitalize(str) {
@@ -187,7 +187,7 @@ const MobileNavbar = ({ open, setOpen, user, logoutHandler, capitalize }) => {
           <ul className="flex flex-col gap-3 text-lg my-5">
             {user && user.role === "recruiter" ? (
               <>
-                <li className='bg-slate-100 w-full h-full p-2 rounded-sm'>
+                <li className='bg-slate-100 w-full h-full p-2 rounded-sm active:underline'>
                   <Link to="/admin/companies" onClick={() => setOpen(false)}>Companies</Link>
                 </li>
                 <li className='bg-slate-100 w-full h-full p-2 rounded-sm'>
