@@ -5,6 +5,7 @@ import {
   google,
   login,
   logout,
+  refreshAccessToken,
   register,
   updateProfile,
   verification,
@@ -21,6 +22,9 @@ router.route("/register").post(
 router.route('/verify').post(verification);
 router.route('/login').post(login);
 router.route('/logout').post(logout);
+
+
+router.route('/refresh').get(refreshAccessToken);
 
 router.put(
   "/profile/update",

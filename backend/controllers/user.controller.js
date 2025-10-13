@@ -174,7 +174,7 @@ export const login = async (req, res) => {
     const accessToken = jwt.sign(
       { id: user._id },
       process.env.SECRET_KEY,
-      { expiresIn: "1h" }
+      { expiresIn: "15m" }
     );
 
     const refreshToken = jwt.sign(
@@ -185,9 +185,9 @@ export const login = async (req, res) => {
 
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
-      secure: false, // true on production with HTTPS
+      secure: false,
       sameSite: "lax",
-      maxAge: 1 * 24 * 60 * 60 * 1000,
+      maxAge: 15 * 60 * 1000,
     });
 
     res.cookie("refreshToken", refreshToken, {
@@ -222,6 +222,39 @@ export const login = async (req, res) => {
     });
   }
 };
+
+export const refreshAccessToken = async (req, res) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+    if (!refreshToken) {
+      return res.status(401).json({ message: "No refresh token", success: false });
+    }
+
+    const decoded = jwt.verify(refreshToken, process.env.SECRET_KEY);
+    if (!decoded) {
+      return res.status(401).json({ message: "Invalid refresh token", success: false });
+    }
+
+    const newAccessToken = jwt.sign(
+      { id: decoded.id },
+      process.env.SECRET_KEY,
+      { expiresIn: "15m" }
+    );
+
+    res.cookie("accessToken", newAccessToken, {
+      httpOnly: true,
+      secure: false,
+      sameSite: "lax",
+      maxAge: 15 * 60 * 1000,
+    });
+
+    return res.status(200).json({ success: true, message: "Token refreshed" });
+  } catch (error) {
+    console.log("Refresh Error:", error);
+    return res.status(401).json({ message: "Refresh failed", success: false });
+  }
+};
+
 
 export const logout = async (req, res) => {
   try {
