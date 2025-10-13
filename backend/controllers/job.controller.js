@@ -1,4 +1,5 @@
 import Job from "../models/job.model.js";
+import mongoose from "mongoose";
 
 // for admin
 export const postJob = async (req, res) => {
@@ -87,6 +88,91 @@ export const getJobById = async (req, res) => {
       job,
       success: true
     })
+  } catch (error) {
+    console.log(error)
+    return res.status(500).json({
+      message: "Internal server error",
+      success: false
+    })
+  }
+}
+
+
+export const updateJob = async (req, res) => {
+  const {
+    title,
+    description,
+    requirements,
+    salary,
+    location,
+    jobType,
+    experience,
+    position,
+  } = req.body;
+
+  try {
+    const jobId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(jobId)) {
+      return res.status(400).json({
+        message: "Invalid job ID format.",
+        success: false,
+      });
+    }
+
+    const job = await Job.findById(jobId).populate({
+      path: "company"
+    });
+    if (!job) {
+      return res.status(404).json({
+        message: "Job not found.",
+        success: false,
+      });
+    }
+
+    if (title?.trim()) job.title = title.trim();
+    if (description?.trim()) job.description = description.trim();
+    if (requirements) {
+      if (typeof requirements === "string") {
+        job.requirements = requirements
+          .split(",")
+          .map((r) => r.trim())
+          .filter(Boolean);
+      } else {
+        job.requirements = requirements;
+      }
+    }
+    if (salary !== undefined) job.salary = salary;
+    if (location?.trim()) job.location = location.trim();
+    if (jobType?.trim()) job.jobType = jobType.trim();
+    if (experience !== undefined) job.experienceLevel = experience;
+    if (position !== undefined) job.position = position;
+
+    await job.save();
+
+    return res.status(200).json({
+      message: "Job updated successfully.",
+      success: true,
+      job,
+    });
+  } catch (error) {
+    console.error("Error updating job:", error);
+    return res.status(500).json({
+      message: "Internal server error.",
+      success: false,
+      error: error.message,
+    });
+  }
+};
+
+export const deleteJob = async (req,res) => {
+  try {
+     const jobId = req.params.id;
+     await Job.findByIdAndDelete(jobId);
+     return res.status(200).json({
+      message: "Job deleted successfully",
+      success: true
+     })
   } catch (error) {
     console.log(error)
     return res.status(500).json({

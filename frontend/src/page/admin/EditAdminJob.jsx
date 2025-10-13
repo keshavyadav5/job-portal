@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Navbar from "@/components/shared/Navbar";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -15,10 +15,10 @@ import {
 import axios from "axios";
 import { JOB_API_END_POINT } from "@/utils/constant";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 
-//  Niche (Job Title) options
+// Niche options
 const nichesArray = [
   "Software Development",
   "Web Development",
@@ -42,10 +42,14 @@ const nichesArray = [
   "IT Consulting",
 ];
 
-//  Job Type options
+// Job Type options
 const jobTypes = ["Full Time", "Part Time", "Work on Contract"];
 
-const PostJob = () => {
+const EditAdminJob = () => {
+  const params = useParams();
+  const navigate = useNavigate();
+  const { companies } = useSelector((store) => store.company);
+
   const [input, setInput] = useState({
     title: "",
     description: "",
@@ -58,13 +62,14 @@ const PostJob = () => {
     companyId: "",
   });
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-  const { companies } = useSelector((store) => store.company);
+  const [open, setOpen] = useState(false);
 
+  // Handle input changes
   const changeEventHandler = (e) => {
     setInput({ ...input, [e.target.name]: e.target.value });
   };
 
+  // Handle company selection
   const selectCompanyHandler = (value) => {
     const selectedCompany = companies.find(
       (company) => company.name.toLowerCase() === value
@@ -72,37 +77,47 @@ const PostJob = () => {
     setInput({ ...input, companyId: selectedCompany?._id });
   };
 
-  //  Company validation before posting job
-  const validateCompany = (company) => {
-    if (!company) return { canApply: false, message: "Please select a company." };
-    if (!company.name)
-      return { canApply: false, message: "Company name is required." };
-    if (!company.website)
-      return { canApply: false, message: "Please add the company website." };
-    if (!company.location)
-      return { canApply: false, message: "Please add the company location." };
-    return { canApply: true, message: "" };
-  };
+  // Fetch job details on mount
+  useEffect(() => {
+    const fetchJobById = async () => {
+      try {
+        const res = await axios.get(`${JOB_API_END_POINT}/get/${params.id}`, {
+          withCredentials: true,
+        });
+        if (res.data.success && res.data.job) {
+          const job = res.data.job;
 
+          setInput({
+            title: job.title || "",
+            description: job.description || "",
+            requirements: job.requirements?.join(", ") || "",
+            salary: job.salary || "",
+            location: job.location || "",
+            jobType: job.jobType || "",
+            experience: job.experienceLevel || "",
+            position: job.position || 0,
+            companyId: job.companyId || "",
+          });
+        }
+      } catch (error) {
+        toast.error(error.response?.data?.message || "Something went wrong");
+      }
+    };
+    fetchJobById();
+  }, [params.id]);
+
+  // Submit update
   const submitHandler = async (e) => {
     e.preventDefault();
 
     if (!input.companyId) {
-      toast.error("Please select a company before posting a job.");
-      return;
-    }
-
-    const company = companies.find((c) => c._id === input.companyId);
-    const eligibility = validateCompany(company);
-
-    if (!eligibility.canApply) {
-      toast.error(eligibility.message);
+      toast.error("Please select a company before updating the job.");
       return;
     }
 
     try {
       setLoading(true);
-      const res = await axios.post(`${JOB_API_END_POINT}/post`, input, {
+      const res = await axios.put(`${JOB_API_END_POINT}/update/${params.id}`, input, {
         headers: { "Content-Type": "application/json" },
         withCredentials: true,
       });
@@ -127,10 +142,11 @@ const PostJob = () => {
           className="p-8 w-[700px] border border-gray-200 shadow-lg rounded-md"
         >
           <div className="grid grid-cols-2 gap-4">
-            {/*  Niche (Job Title) Select */}
+            {/* Niche / Job Title */}
             <div>
               <Label>Niche / Job Title</Label>
               <Select
+                value={input.title}
                 onValueChange={(value) => setInput({ ...input, title: value })}
               >
                 <SelectTrigger className="w-full my-1">
@@ -148,10 +164,11 @@ const PostJob = () => {
               </Select>
             </div>
 
-            {/*  Job Type Select */}
+            {/* Job Type */}
             <div>
               <Label>Job Type</Label>
               <Select
+                value={input.jobType}
                 onValueChange={(value) => setInput({ ...input, jobType: value })}
               >
                 <SelectTrigger className="w-full my-1">
@@ -169,7 +186,7 @@ const PostJob = () => {
               </Select>
             </div>
 
-            {/*  Description */}
+            {/* Description */}
             <div>
               <Label>Description</Label>
               <Input
@@ -181,7 +198,7 @@ const PostJob = () => {
               />
             </div>
 
-            {/*  Requirements */}
+            {/* Requirements */}
             <div>
               <Label>Requirements</Label>
               <Input
@@ -194,7 +211,7 @@ const PostJob = () => {
               />
             </div>
 
-            {/*  Salary */}
+            {/* Salary */}
             <div>
               <Label>Salary</Label>
               <Input
@@ -206,7 +223,7 @@ const PostJob = () => {
               />
             </div>
 
-            {/*  Location */}
+            {/* Location */}
             <div>
               <Label>Location</Label>
               <Input
@@ -218,7 +235,7 @@ const PostJob = () => {
               />
             </div>
 
-            {/*  Experience */}
+            {/* Experience */}
             <div>
               <Label>Experience Level (in years)</Label>
               <Input
@@ -230,7 +247,7 @@ const PostJob = () => {
               />
             </div>
 
-            {/*  No of Positions */}
+            {/* Positions */}
             <div>
               <Label>No. of Positions</Label>
               <Input
@@ -242,11 +259,14 @@ const PostJob = () => {
               />
             </div>
 
-            {/*  Company Select */}
+            {/* Company Select */}
             {companies.length > 0 && (
               <div>
                 <Label>Company</Label>
-                <Select onValueChange={selectCompanyHandler}>
+                <Select
+                  value={companies.find(c => c._id === input.companyId)?.name?.toLowerCase() || ""}
+                  onValueChange={selectCompanyHandler}
+                >
                   <SelectTrigger className="w-full my-1">
                     <SelectValue placeholder="Select a company" />
                   </SelectTrigger>
@@ -267,22 +287,15 @@ const PostJob = () => {
             )}
           </div>
 
-          {/*  Submit Button */}
+          {/* Submit */}
           {loading ? (
             <Button className="w-full my-4" disabled>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Please wait
             </Button>
           ) : (
             <Button type="submit" className="w-full my-4">
-              Post New Job
+              Update Job
             </Button>
-          )}
-
-          {/*  Company warning */}
-          {companies.length === 0 && (
-            <p className="text-xs text-red-600 font-bold text-center my-3">
-              *Please register a company first before posting a job.
-            </p>
           )}
         </form>
       </div>
@@ -290,4 +303,4 @@ const PostJob = () => {
   );
 };
 
-export default PostJob;
+export default EditAdminJob;

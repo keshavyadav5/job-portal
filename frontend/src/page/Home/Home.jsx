@@ -9,28 +9,38 @@ import { useNavigate } from 'react-router-dom'
 import useGetAllJobs from '@/hooks/useGetAllJobs'
 import TopNiches from './TopNiches'
 import HowItWorks from './HowItWorks'
+import Companies from '../admin/Companies'
 
 const Home = () => {
-
   useGetAllJobs();
   const { user } = useSelector(store => store.auth);
   const navigate = useNavigate();
+
   useEffect(() => {
     if (user?.role === 'recruiter') {
       navigate("/admin/companies");
     }
-  }, []);
-  return (
-    <div>
-      <Navbar />
-      <HeroSection />
-      <CategoryCarousel />
-      <LatestJobs />
-      <TopNiches />
-      <HowItWorks />
-      <Footer />
-    </div>
-  )
-}
+  }, [user, navigate]);
 
-export default Home
+  return (
+    <>
+      {user?.role === 'recruiter' ? (
+        <Companies />
+      ) : (
+        <div>
+          <div className='min-h-screen flex flex-col items-center justify-center h-full w-full'>
+            <Navbar />
+            <HeroSection />
+            <CategoryCarousel />
+          </div>
+          <LatestJobs />
+          <TopNiches />
+          <HowItWorks />
+          <Footer />
+        </div>
+      )}
+    </>
+  );
+};
+
+export default Home;

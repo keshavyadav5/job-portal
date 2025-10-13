@@ -236,6 +236,7 @@ const Profile = () => {
       <UpdateProfileDialog open={open} setOpen={setOpen} updateProfile={updateProfile} loading={loading} />
 
       <UpdateProfileImage open={profilePhotoDialogOpen} setOpen={setProfilePhotoDialogOpen} updateProfile={updateProfile} loading={loading} />
+      <AppliedJobTable />
       <Footer />
     </div>
   )

@@ -6,7 +6,8 @@ import { useSelector } from 'react-redux'
 const AppliedJobTable = () => {
     const {allAppliedJobs} = useSelector(store=>store.job);
     return (
-        <div>
+        <div className='max-w-3xl lg:max-w-4xl md:mx-auto bg-white border border-gray-200 rounded-2xl my-5 p-8 mt-20 mx-4 relative shadow'>
+        <p className='text-2xl my-1 font-bold underline text-gray-800'>Applied Job</p>
             <Table>
                 <TableCaption>A list of your applied jobs</TableCaption>
                 <TableHeader>
@@ -14,6 +15,7 @@ const AppliedJobTable = () => {
                         <TableHead>Date</TableHead>
                         <TableHead>Job Role</TableHead>
                         <TableHead>Company</TableHead>
+                        <TableHead>Location</TableHead>
                         <TableHead className="text-right">Status</TableHead>
                     </TableRow>
                 </TableHeader>
@@ -24,6 +26,7 @@ const AppliedJobTable = () => {
                                 <TableCell>{appliedJob?.createdAt?.split("T")[0]}</TableCell>
                                 <TableCell>{appliedJob.job?.title}</TableCell>
                                 <TableCell>{appliedJob.job?.company?.name}</TableCell>
+                                <TableCell>{appliedJob.job?.location}</TableCell>
                                 <TableCell className="text-right"><Badge className={`${appliedJob?.status === "rejected" ? 'bg-red-400' : appliedJob.status === 'pending' ? 'bg-gray-400' : 'bg-green-400'}`}>{appliedJob.status.toUpperCase()}</Badge></TableCell>
                             </TableRow>
                         ))

@@ -20,89 +20,154 @@ import Verify from './components/auth/Verify'
 import ForgotPassword from './components/auth/ForgotPassword'
 import VerifyOTP from './components/auth/VerifyOTP'
 import ChangePassword from './components/auth/ChangePassword'
+import Navbar from './components/shared/Navbar'
+import EditAdminJob from './page/admin/EditAdminJob'
 
+// ✅ Router Configuration
 const appRouter = createBrowserRouter([
   {
     path: "/",
-    element: <Home />
+    element: <Home />,
   },
   {
     path: "/login",
-    element: <AuthLayout><Login /></AuthLayout>
+    element: (
+      <AuthLayout>
+        <Login />
+      </AuthLayout>
+    ),
   },
   {
-    path: '/signup',
-    element: <AuthLayout><Signup /></AuthLayout>
+    path: "/signup",
+    element: (
+      <AuthLayout>
+        <Signup />
+      </AuthLayout>
+    ),
   },
   {
-    path: '/forgot-password',
-    element: <AuthLayout><ForgotPassword /></AuthLayout>
+    path: "/forgot-password",
+    element: (
+      <AuthLayout>
+        <ForgotPassword />
+      </AuthLayout>
+    ),
   },
   {
-    path: '/verify-email',
-    element: <AuthLayout><VerifyEmail /></AuthLayout>
+    path: "/verify-email",
+    element: (
+      <AuthLayout>
+        <VerifyEmail />
+      </AuthLayout>
+    ),
   },
   {
-    path: '/verify',
-    element: <AuthLayout> <Verify /></AuthLayout>
+    path: "/verify",
+    element: (
+      <AuthLayout>
+        <Verify />
+      </AuthLayout>
+    ),
   },
   {
-    path: '/verify-otp/:email',
-    element: <AuthLayout><VerifyOTP /></AuthLayout>
+    path: "/verify-otp/:email",
+    element: (
+      <AuthLayout>
+        <VerifyOTP />
+      </AuthLayout>
+    ),
   },
   {
-    path: '/change-password/:email',
-    element: <AuthLayout><ChangePassword /></AuthLayout>
+    path: "/change-password/:email",
+    element: (
+      <AuthLayout>
+        <ChangePassword />
+      </AuthLayout>
+    ),
   },
   {
-    path: '/jobs',
-    element: <Jobs />
+    path: "/jobs",
+    element: <Jobs />,
   },
   {
-    path: '/profile',
-    element: <Profile />
+    path: "/profile",
+    element: <Profile />,
   },
   {
-    path: '/description/:id',
-    element: <JobDescription />
+    path: "/description/:id",
+    element: <JobDescription />,
   },
   {
-    path: '/browse',
-    element: <Browse />
+    path: "/browse",
+    element: <Browse />,
   },
-  // admin ke liye yha se start hoga
+
+  // ✅ Admin Routes (Protected)
   {
     path: "/admin/companies",
-    element: <ProtectedRoute><Companies /></ProtectedRoute>
+    element: (
+      <ProtectedRoute>
+        <Companies />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/admin/companies/create",
-    element: <ProtectedRoute><CompanyCreate /></ProtectedRoute>
+    element: (
+      <ProtectedRoute>
+        <CompanyCreate />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/admin/companies/:id",
-    element: <ProtectedRoute><CompanySetup /></ProtectedRoute>
+    element: (
+      <ProtectedRoute>
+        <CompanySetup />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/admin/jobs",
-    element: <ProtectedRoute><AdminJobs /></ProtectedRoute>
+    element: (
+      <ProtectedRoute>
+        <AdminJobs />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/admin/jobs/create",
-    element: <ProtectedRoute><PostJob /></ProtectedRoute>
+    element: (
+      <ProtectedRoute>
+        <PostJob />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/admin/job/update/:id",
+    element: (
+      <ProtectedRoute>
+        <EditAdminJob />
+      </ProtectedRoute>
+    ),
   },
   {
     path: "/admin/jobs/:id/applicants",
-    element: <ProtectedRoute><Applicants /></ProtectedRoute>
+    element: (
+      <ProtectedRoute>
+        <Applicants />
+      </ProtectedRoute>
+    ),
   },
-])
+]);
 
+// ✅ Main App
 const App = () => {
   return (
-    <RouterProvider router={appRouter}>
+    <>
+      <RouterProvider router={appRouter} />
+    </>
+  );
+};
 
-    </RouterProvider>
-  )
-}
-
-export default App
+export default App;

@@ -171,7 +171,6 @@ export const login = async (req, res) => {
     await Session.deleteOne({ userId: user._id });
     await Session.create({ userId: user._id });
 
-    // ✅ Generate tokens properly
     const accessToken = jwt.sign(
       { id: user._id },
       process.env.SECRET_KEY,
@@ -184,7 +183,6 @@ export const login = async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    // ✅ Set cookies once (not duplicated)
     res.cookie("accessToken", accessToken, {
       httpOnly: true,
       secure: false, // true on production with HTTPS
