@@ -11,7 +11,7 @@ import { setAllJobs } from '@/redux/jobSlice';
 const Jobs = () => {
     const { allJobs, searchedQuery } = useSelector(store => store.job);
     const [filterJobs, setFilterJobs] = useState(allJobs);
-
+    console.log('search query', searchedQuery)
     useEffect(() => {
         setAllJobs("")
     }, [])

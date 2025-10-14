@@ -24,16 +24,21 @@ const filterData = [
     filterType: "Industry",
     array: ["Frontend Developer", "Backend Developer", "FullStack Developer"]
   },
-  {
-    filterType: "Salary",
-    array: ["0-40k", "42-1lakh", "1lakh to 5lakh"]
-  },
+  // {
+  //   filterType: "Salary",
+  //   array: ["900000", "890000", "1lakh to 5lakh"]
+  // },
 ]
 
 const FilterCard = () => {
   const [open, setOpen] = useState(false)
   const [selectedValue, setSelectedValue] = useState('')
   const dispatch = useDispatch()
+
+  useEffect(() => {
+    setSelectedValue('')
+    dispatch(setSearchedQuery(''))
+  }, [dispatch])
 
   const changeHandler = (value) => {
     setSelectedValue(value)
@@ -45,7 +50,7 @@ const FilterCard = () => {
     }
   }, [selectedValue, dispatch])
 
-  // 🔥 Extracted common filter UI
+
   const renderFilters = () => (
     <RadioGroup value={selectedValue} onValueChange={changeHandler}>
       {filterData.map((data, index) => (

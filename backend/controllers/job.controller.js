@@ -42,13 +42,14 @@ export const postJob = async (req, res) => {
 // for students
 export const getAllJobs = async (req, res) => {
   try {
-    const keyboard = req.query.keyboard || "";
+    const keyword = req.query.keyword || "";
     const query = {
       $or: [
-        { title: { $regex: keyboard, $options: "i" } },
-        { description: { $regex: keyboard, $options: "i" } }
+        { title: { $regex: keyword, $options: "i" } },
+        { description: { $regex: keyword, $options: "i" } }
       ]
     }
+
     const jobs = await Job.find(query).populate({
       path: "company"
     }).sort({ createdAt: -1 })
@@ -165,14 +166,14 @@ export const updateJob = async (req, res) => {
   }
 };
 
-export const deleteJob = async (req,res) => {
+export const deleteJob = async (req, res) => {
   try {
-     const jobId = req.params.id;
-     await Job.findByIdAndDelete(jobId);
-     return res.status(200).json({
+    const jobId = req.params.id;
+    await Job.findByIdAndDelete(jobId);
+    return res.status(200).json({
       message: "Job deleted successfully",
       success: true
-     })
+    })
   } catch (error) {
     console.log(error)
     return res.status(500).json({
